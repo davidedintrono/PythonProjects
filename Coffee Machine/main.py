@@ -79,7 +79,7 @@ def check_quantity(user_choice):
         is_missing = "milk"
     elif not (resources["coffee"] >= MENU[user_choice]["ingredients"]["coffee"]):
         is_missing = "coffee"
-    return  is_missing
+    return is_missing
 
 
 choice = input("What would you like? (espresso/latte/cappuccino): ")
