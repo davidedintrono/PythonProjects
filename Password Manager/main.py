@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from random import randint, choice, shuffle
 import pyperclip
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generate_password():
 
@@ -26,18 +27,45 @@ def add():
     website = website_input.get()
     email = mail_input.get()
     password = pwd_input.get()
+    new_data = {
+        website: {
+                "email": email,
+                "password": password,
+            }
+    }
 
     if len(website) == 0 or len(password) == 0:
         messagebox.showwarning(title="Warning", message="Please make sure you haven't left any fields empty.")
     else:
-        is_ok = messagebox.askokcancel(title=website, message=f"These are the details entered:\nEmail: {email}"
-                                       f"\nPassword: {password}\nIs it ok to save?")
-
-        if is_ok:
-            with open("password.txt", "a") as file:
-                file.write(f"{website} | {email} | {password}\n")
+        try:
+            with open("password.json", "r") as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            with open("password.json", "w") as file:
+                json.dump(new_data, file, indent=4)
+        else:
+            data.update(new_data)
+            with open("password.json", "w") as file:
+                json.dump(data, file, indent=4)
+        finally:
             website_input.delete(0, END)
             pwd_input.delete(0, END)
+
+# ---------------------------- SEARCH PASSWORD ------------------------------- #
+def find_password():
+    website = website_input.get()
+
+    try:
+        with open("password.json", "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No Data File Found")
+    else:
+        if website in data:
+            messagebox.showinfo(title=website, message=f'Email: {data[website]["email"]}\nPassword: '
+                                                       f'{data[website]["password"]}')
+        else:
+            messagebox.showinfo(title=website, message="No details for the website exists.")
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -52,9 +80,12 @@ canvas.grid(column=1, row=0)
 website_label = Label(text="Website:")
 website_label.grid(column=0, row=1)
 
-website_input = Entry(width=35)
-website_input.grid(column=1, row=1, columnspan=2)
+website_input = Entry(width=21)
+website_input.grid(column=1, row=1)
 website_input.focus()
+
+search_pwd_button = Button(text="Search", command=find_password, width=10)
+search_pwd_button.grid(column=2, row=1)
 
 mail_label = Label(text="Email/Username:")
 mail_label.grid(column=0, row=2)
